@@ -23,7 +23,12 @@ description: Use when releasing a version, writing commit messages, bumping chan
 
 - 读取 commit 历史，计算语义版本号
 - 生成高颜值中文 Emoji CHANGELOG
-- 更新 README 版本号与特性列表
+- **【强制】自动分析并全面更新目标项目的 `README.md`**：
+  - 版本号徽章（如 `![Version](https://img.shields.io/badge/version-vX.X.X-blue)`）
+  - `## What's New` / `## 最新版本` 区块的最新特性清单
+  - 安装/下载命令中的版本号引用
+  - 若 README 包含截图路径、演示 GIF 等媒体，检查是否需随版本更新
+  - 若无上述任何区块，则在文件末尾追加 `## 最新版本：vX.X.X` 摘要块
 - 打上 Annotated Tag（附注标签），写入发版说明
 - 一键 `git push origin main --tags`，收工
 
@@ -245,19 +250,31 @@ fi
 格式参考 [Keep a Changelog](https://keepachangelog.com/)，版本号遵循 [语义化版本](https://semver.org/)。
 ```
 
-#### Step 4 — 更新 README.md
+#### Step 4 — 更新 README.md（**强制必做，不得跳过**）
 
-在 README.md 中定位并更新：
-1. **Badge/版本号**：如 `![Version](https://img.shields.io/badge/version-vX.X.X-blue)`
-2. **最新版本特性列表**（如有 `## What's New` 或 `## 最新版本` 区块）
-3. **安装命令中的版本号**（如 `download vX.X.X`）
+> **⚠️ 重要约束**：README.md 是项目的「门面」，每次发版必须确保其反映最新状态。Agent 必须主动分析 README 的完整内容，识别所有需要更新的位置，而非仅机械替换版本号字符串。
 
-若找不到对应区块，在 README.md 末尾追加：
+**必须逐项检查并更新以下内容：**
+
+1. **版本号徽章**（如 `![Version](https://img.shields.io/badge/version-vX.X.X-blue)` 或 `![Release](https://img.shields.io/github/v/release/...)`)
+2. **最新版本特性列表**（如有 `## What's New`、`## 最新版本`、`## Changelog`、`## 更新日志` 区块）：用本次 `feat` commit 的精炼摘要替换或补充
+3. **安装/下载命令中的版本号**（如 `brew install vX.X.X`、`download vX.X.X`、`pip install==X.X.X`）
+4. **截图/演示媒体路径**（如截图文件名包含版本号，或有「当前版本界面预览」区块，提醒大刘是否需要更新）
+5. **兼容性/系统要求说明**（如有 `macOS 14+` 等版本要求随新版本变化时更新）
+
+**若 README 中找不到任何版本相关区块：**
 
 ```markdown
-## 最新版本：vX.X.X
-- [特性/修复 摘要]
+## 最新版本：vX.X.X（YYYY-MM-DD）
+
+### 🚀 本次新增
+- [从 feat commit 提取的特性摘要]
+
+### 🐛 本次修复
+- [从 fix commit 提取的修复摘要]
 ```
+
+**原则：** 宁可多更新，不可少更新。发版完成后 README 必须与实际发布内容一致。
 
 #### Step 5–7 — Commit、Annotated Tag、Push
 
@@ -283,7 +300,7 @@ git push origin main --tags
 - [ ] `git branch` — 确认当前在 `main` / `master`
 - [ ] `git log` — commit 历史符合预期，中文 Subject 规范
 - [ ] CHANGELOG.md — 中文 Emoji 分类排版正确
-- [ ] README.md — 版本号已更新
+- [ ] README.md — **完整检查并更新**（版本号、特性列表、安装命令、截图/媒体等，不得遗漏）
 - [ ] 使用 `git tag -a`（Annotated Tag）打标
 
 ### 常见错误
@@ -293,7 +310,8 @@ git push origin main --tags
 | 无 commit 可发布 | 告知大刘，当前无新改动 |
 | tag 已存在 | 询问是否覆盖 (`git tag -d vX.X.X` + 重建) |
 | push 被拒绝 | 先 `git pull --rebase` 再 push |
-| README 无版本区块 | 追加 `## 最新版本` 区块 |
+| README 无版本区块 | 追加 `## 最新版本：vX.X.X` 区块（含特性/修复摘要） |
+| README 更新被遗漏 | **严重错误**：返回 Step 4，补全所有版本相关内容后重新提交 |
 | 在 main 上有未提交改动 | 先暂存 (`git stash`) 或切到功能分支 |
 
 ---
