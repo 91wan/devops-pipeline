@@ -1,0 +1,95 @@
+name: Release macOS App
+
+# 触发条件：仅 v* tag 推送时触发
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  # ✏️ 修改为你的 App 名称
+  APP_NAME: MyApp
+  # ✏️ Xcode Scheme 名称
+  SCHEME: MyApp
+  # ✏️ .xcodeproj 或 .xcworkspace 文件名（不含路径）
+  PROJECT_FILE: MyApp.xcodeproj
+
+jobs:
+  build-and-release:
+    name: Build & Release macOS App
+    runs-on: macos-latest
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. 读取 tag 版本号（去掉 v 前缀）
+      - name: Get version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      # 3. 构建 macOS .app（Release 配置，不签名）
+      - name: Build with xcodebuild
+        run: |
+          xcodebuild \
+            -project "$PROJECT_FILE" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -derivedDataPath ./build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build
+
+      # 4. 定位 .app 产物
+      - name: Locate built .app
+        id: locate
+        run: |
+          APP_PATH=$(find ./build -name "*.app" -maxdepth 6 | head -1)
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "Found: $APP_PATH"
+
+      # 5. 压缩为 zip
+      - name: Archive .app to zip
+        run: |
+          cd "$(dirname "${{ steps.locate.outputs.APP_PATH }}")"
+          zip -r "$GITHUB_WORKSPACE/${APP_NAME}-macOS.zip" "$(basename "${{ steps.locate.outputs.APP_PATH }}")"
+
+      # 6. 创建 GitHub Release 并上传附件
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
+          body: |
+            ## ${{ env.APP_NAME }} ${{ github.ref_name }}
+
+            ### 📥 下载安装（macOS 保姆级教程）
+
+            1. 点击下方 **Assets** 中的 `${{ env.APP_NAME }}-macOS.zip` 下载压缩包
+            2. 双击 zip 解压，得到 `${{ env.APP_NAME }}.app`
+            3. 将 `.app` 拖入 `/Applications` 文件夹
+
+            ### 🛡️ macOS 破防指南（打开闪退？看这里！）
+
+            macOS Gatekeeper 会拦截未经公证的 App，导致「已损坏」或「无法打开」。
+            在终端执行以下命令一键解除封印：
+
+            ```bash
+            xattr -cr /Applications/${{ env.APP_NAME }}.app
+            ```
+
+            > **说明：** `xattr -cr` 会递归移除 App 上的隔离属性（`com.apple.quarantine`），
+            > 让系统放行运行。这是正常的开发者分发流程，安全无副作用。
+
+            执行后重新双击打开即可。
+
+            ### 📋 更新内容
+
+            请查阅 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) 查看完整改动记录。
+          files: ${{ env.APP_NAME }}-macOS.zip
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

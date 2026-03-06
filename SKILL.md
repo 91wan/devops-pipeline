@@ -397,11 +397,29 @@ jobs:
           body: |
             ## ${{ env.APP_NAME }} ${{ github.ref_name }}
 
-            ### 下载
-            - **macOS**: 下载 `${{ env.APP_NAME }}-macOS.zip`，解压后将 `.app` 拖入 Applications 文件夹
+            ### 📥 下载安装（macOS 保姆级教程）
 
-            ### 更新内容
-            请查阅 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md)
+            1. 点击下方 **Assets** 中的 `${{ env.APP_NAME }}-macOS.zip` 下载压缩包
+            2. 双击 zip 解压，得到 `${{ env.APP_NAME }}.app`
+            3. 将 `.app` 拖入 `/Applications` 文件夹
+
+            ### 🛡️ macOS 破防指南（打开闪退？看这里！）
+
+            macOS Gatekeeper 会拦截未经公证的 App，导致「已损坏」或「无法打开」。
+            在终端执行以下命令一键解除封印：
+
+            ```bash
+            xattr -cr /Applications/${{ env.APP_NAME }}.app
+            ```
+
+            > **说明：** `xattr -cr` 会递归移除 App 上的隔离属性（`com.apple.quarantine`），
+            > 让系统放行运行。这是正常的开发者分发流程，安全无副作用。
+
+            执行后重新双击打开即可。
+
+            ### 📋 更新内容
+
+            请查阅 [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) 查看完整改动记录。
           files: ${{ env.APP_NAME }}-macOS.zip
           draft: false
           prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') }}
