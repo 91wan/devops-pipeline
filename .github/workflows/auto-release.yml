@@ -1,0 +1,31 @@
+name: 🚀 V8 Auto-Release Matrix
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: "Forge Release"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build Release Notes
+        run: |
+          echo "## V8 Protocol Evolution" > release_notes.md
+          if [ -f "docs/RELEASE_NARRATIVE.md" ]; then
+            cat docs/RELEASE_NARRATIVE.md >> release_notes.md
+          fi
+          echo "" >> release_notes.md
+          echo "### 🛠 System Changelog" >> release_notes.md
+          git log $(git describe --tags --abbrev=0 ^HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)..HEAD --oneline | grep -E 'feat|fix|docs' >> release_notes.md || echo "- Routine blueprint adjustments" >> release_notes.md
+
+      - name: Emit GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
