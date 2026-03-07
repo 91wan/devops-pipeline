@@ -69,7 +69,7 @@ chore: 升级 Swift 工具链至 5.10
 
 ### 📦 模块二：本地发版大管家（Release Manager）
 
-大刘只需一句话触发完整发版：
+[Project Lead]只需一句话触发完整发版：
 
 ```
 "发布小版本"  /  "发 major"  /  "发布 v2.1.0"
@@ -175,7 +175,7 @@ zip 压缩 .app 产物
 ### 触发发版示例
 
 ```
-大刘：发布小版本
+[Project Lead]：发布小版本
 Agent：
   ✅ Step 0: 工作区干净，当前在 main 分支
   ✅ Step 1: 上一版本 v1.1.0 → 新版本 v1.2.0（有 feat commit）
