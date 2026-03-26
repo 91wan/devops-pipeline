@@ -1,3 +1,7 @@
+> **[DEPRECATED]** 本仓库已归档为只读状态。核心逻辑已迁移至内部私有 Skill 体系（`geek-release-protocol` / `github-guard` / `test-gate`），请勿在新项目中使用本仓库内容。
+
+---
+
 # 🚀 devops-pipeline
 
 > **终极全自动发版流水线（零手工双阶段方案）**
